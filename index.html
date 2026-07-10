@@ -2,428 +2,186 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>捡石子小游戏</title>
-    <style>
-        html, body { height: 100%; margin: 0; padding: 0; background: #f5f5f5; }
-        body { font-family: "微软雅黑", Arial, sans-serif; }
-        .container {
-            max-width: 98vw;
-            width: 400px;
-            margin: 2.5vh auto;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px #ccc;
-            padding: 4vw 4vw 2vw 4vw;
-            min-height: 80vh;
-        }
-        h2 { text-align: center; font-size: 1.5em; margin: 1em 0 0.5em 0; }
-        .info, .winner { text-align: center; margin: 1em 0 0.5em 0; font-size: 1.1em; }
-        .actions { display: flex; justify-content: center; gap: 5vw; margin: 1em 0; }
-        button {
-            padding: 0.7em 2em;
-            font-size: 1.1em;
-            border-radius: 6px;
-            border: 1px solid #888;
-            background: #eee;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:active { background: #ddd; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .input-row {
-            display: flex;
-            justify-content: center;
-            gap: 2vw;
-            margin-bottom: 1em;
-            flex-wrap: wrap;
-        }
-        input[type="number"], input[type="text"], select {
-            width: 22vw;
-            min-width: 70px;
-            max-width: 120px;
-            padding: 0.5em;
-            font-size: 1em;
-            border-radius: 4px;
-            border: 1px solid #bbb;
-        }
-        #modeSelect, #ruleSelect { min-width: 140px; max-width: 220px; width: 180px; }
-        .game-scene {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            margin: 1em 0 0.5em 0;
-            min-height: 80px;
-        }
-        .avatar {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            font-size: 2.5em;
-            position: relative;
-            transition: transform 0.2s;
-        }
-        .avatar.active {
-            animation: jump 0.5s;
-            filter: drop-shadow(0 0 8px #ffb300);
-        }
-        @keyframes jump {
-            0% { transform: scale(1) translateY(0);}
-            30% { transform: scale(1.15) translateY(-10px);}
-            60% { transform: scale(1.1) translateY(-5px);}
-            100% { transform: scale(1) translateY(0);}
-        }
-        .stones-area {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            min-height: 48px;
-            margin: 0.5em 0 0.5em 0;
-            max-width: 100%;
-            word-break: break-all;
-            position: relative;
-            flex: 1;
-        }
-        .stone {
-            font-size: 2em;
-            margin: 2px;
-            transition: transform 0.3s, opacity 0.3s;
-            display: inline-block;
-            position: relative;
-        }
-        .stone.taken { transform: scale(0); opacity: 0.2; }
-        .stone.fly {
-            position: absolute !important;
-            z-index: 10;
-            transition: transform 0.6s cubic-bezier(.4,2,.6,1), opacity 0.6s;
-        }
-        .log-area {
-            background: #f9f9f9;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            padding: 0.5em;
-            height: 90px;
-            overflow-y: auto;
-            font-size: 1em;
-            margin-top: 0.7em;
-            max-width: 100%;
-        }
-        .log-area strong { color: #2b7; }
-        .log-area .ai { color: #09c; }
-        .log-area .player { color: #e67e22; }
-        .button-row {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        .rule-tip {
-            text-align: center;
-            color: #666;
-            font-size: 1em;
-            margin-bottom: 0.7em;
-            background: #f3f3f3;
-            border-radius: 6px;
-            padding: 0.4em 0.5em;
-        }
-        @media (max-width: 500px) {
-            .container { width: 98vw; min-width: unset; padding: 2vw 2vw 2vw 2vw; }
-            h2 { font-size: 1.2em; }
-            .info, .winner { font-size: 1em; }
-            button { font-size: 1em; padding: 0.6em 1.2em; }
-            input[type="number"], input[type="text"], select { font-size: 0.95em; }
-            .log-area { font-size: 0.95em; }
-            .stone { font-size: 1.5em; }
-            .avatar { width: 40px; height: 40px; font-size: 1.7em; }
-            .rule-tip { font-size: 0.95em; }
-        }
-    </style>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='50%25' y='52%25' dominant-baseline='middle' text-anchor='middle' font-size='42'%3E%F0%9F%AA%A8%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="container">
-    <h2>捡石子小游戏</h2>
-    <div id="rules" class="rules">
-      <h3>游戏规则</h3>
-      <ul>
-        <li>初始有若干石子，玩家与对手轮流取石子。</li>
-        <li>每次可取1-3颗石子，且不能和上一次取的数量相同。</li>
-        <li>取到最后一颗石子者获胜。</li>
-      </ul>
-    </div>
-    <div id="setup">
-        <div class="input-row">
-            <label>对战模式:
-                <select id="modeSelect" onchange="onModeChange()">
-                    <option value="ai">玩家 vs AI</option>
-                    <option value="pvp">玩家 vs 玩家</option>
-                </select>
-            </label>
-        </div>
-        <div class="input-row">
-            <label>游戏规则:
-                <select id="ruleSelect" onchange="onRuleChange()">
-                    <option value="3" selected>每次可取1-3颗</option>
-                </select>
-            </label>
-            <span style="color:gray;font-size:12px;">（当前仅支持1-3颗）</span>
-        </div>
-        <div class="input-row">
-            <label>玩家1: <input type="text" id="player1" value="你"></label>
-            <label id="player2Label" style="display:none;">玩家2: <input type="text" id="player2" value="对手"></label>
-        </div>
-        <div class="input-row">
-            <label>石子总数: <input type="number" id="totalStones" min="6" max="99" value="12"></label>
-        </div>
-        <div class="button-row">
-            <button onclick="startGame()">开始游戏</button>
-        </div>
-    </div>
-    <div id="game" style="display:none;">
-        <div class="info" id="status"></div>
-        <div class="game-scene">
-            <div class="avatar" id="avatar0">🧑</div>
-            <div class="stones-area" id="stonesArea"></div>
-            <div class="avatar" id="avatar1">🤖</div>
-        </div>
-        <div class="info">剩余石子数：<span id="stones"></span></div>
-        <div class="actions" id="actions"></div>
-        <div class="winner" id="winner" style="color:green;"></div>
-        <div class="log-area" id="logArea"></div>
-        <button onclick="resetGame()">重新开始</button>
-    </div>
-</div>
-<script>
-    let players = [];
-    let total = 0;
-    let turn = 0; // 0: 玩家1, 1: 玩家2/AI
-    let gameOver = false;
-    let log = [];
-    let stonesArr = [];
-    let mode = "ai"; // "ai" or "pvp"
-    let maxPick = 3;
-    const AI_NAME = "捡石子大王-邹是好看";
-    const AVATARS = ["🧑", "🤖"];
-    let lastPick = 0;
+    <main class="app-shell">
+        <section class="app">
+            <header class="topbar">
+                <div class="title-group">
+                    <p class="eyebrow" data-i18n="eyebrow"></p>
+                    <div class="title-row">
+                        <h1 data-i18n="title"></h1>
+                        <div class="lang-switch" aria-label="Language switch" role="group">
+                            <button type="button" class="lang-btn" data-lang="zh-CN">中</button>
+                            <button type="button" class="lang-btn" data-lang="en">EN</button>
+                        </div>
+                    </div>
+                    <p class="subtitle" data-i18n="subtitle"></p>
+                </div>
+            </header>
 
-    function onModeChange() {
-        mode = document.getElementById('modeSelect').value;
-        document.getElementById('player2Label').style.display = (mode === 'pvp') ? '' : 'none';
-        document.getElementById('player2').value = (mode === 'pvp') ? '对手' : AI_NAME;
-        document.getElementById('avatar1').textContent = (mode === 'ai') ? AVATARS[1] : AVATARS[0];
-    }
-    function onRuleChange() {
-        maxPick = 3;
-        renderActions();
-        updateRuleTip();
-    }
+            <section class="screen setup-screen" id="setupScreen">
+                <section class="hero-strip">
+                    <div class="hero-copy">
+                        <div class="hero-chip" data-i18n="ruleBanner"></div>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-label" data-i18n="maxPickLabel"></span>
+                            <strong>1-3</strong>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-label" data-i18n="repeatRuleLabel"></span>
+                            <strong data-i18n="repeatRuleValue"></strong>
+                        </div>
+                    </div>
+                </section>
 
-    function renderActions() {
-        const actionsDiv = document.getElementById('actions');
-        actionsDiv.innerHTML = '';
-        for (let i = 1; i <= maxPick; i++) {
-            const btn = document.createElement('button');
-            btn.textContent = `捡${i}颗`;
-            btn.id = `pick${i}`;
-            btn.onclick = () => pickStones(i);
-            actionsDiv.appendChild(btn);
-        }
-        updateStatus();
-    }
+                <section class="setup-grid">
+                    <section class="panel setup-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2 data-i18n="setupTitle"></h2>
+                                <p data-i18n="setupHint"></p>
+                            </div>
+                        </div>
 
-    function startGame() {
-        mode = document.getElementById('modeSelect').value;
-        maxPick = parseInt(document.getElementById('ruleSelect').value, 10);
-        const p1 = document.getElementById('player1').value.trim() || '你';
-        const p2 = document.getElementById('player2').value.trim() || (mode === 'ai' ? AI_NAME : '对手');
-        total = parseInt(document.getElementById('totalStones').value, 10);
-        if (isNaN(total) || total < 6 || total > 99) {
-            alert('请输入6~99之间的石子数');
-            return;
-        }
-        players = [p1, p2];
-        turn = 0;
-        gameOver = false;
-        log = [];
-        stonesArr = Array(total).fill(0);
-        lastPick = 0; // 初始化lastPick
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('game').style.display = '';
-        document.getElementById('winner').textContent = '';
-        document.getElementById('avatar0').textContent = AVATARS[0];
-        document.getElementById('avatar1').textContent = (mode === 'ai') ? AVATARS[1] : AVATARS[0];
-        renderActions();
-        updateStonesArea();
-        updateStatus();
-        updateLog();
-        updateAvatars();
-        updateRuleTip(); // 新增：在游戏开始时更新规则说明
-        if (mode === 'ai' && turn === 1) aiMove();
-    }
+                        <div class="form-grid">
+                            <label class="field">
+                                <span data-i18n="modeLabel"></span>
+                                <select id="modeSelect">
+                                    <option value="ai"></option>
+                                    <option value="pvp"></option>
+                                </select>
+                            </label>
 
-    function updateAvatars() {
-        document.getElementById('avatar0').classList.toggle('active', turn === 0);
-        document.getElementById('avatar1').classList.toggle('active', turn === 1);
-    }
+                            <label class="field">
+                                <span data-i18n="totalLabel"></span>
+                                <input type="number" id="totalStones" min="6" max="99" value="16">
+                            </label>
 
-    function updateStonesArea(takeIdxs=[]) {
-        const area = document.getElementById('stonesArea');
-        area.innerHTML = '';
-        for (let i = 0; i < stonesArr.length; i++) {
-            let cls = "stone";
-            if (stonesArr[i] === 1) cls += " taken";
-            area.innerHTML += `<span class="${cls}" id="stone${i}">🪨</span>`;
-        }
-        // 动画效果
-        if (takeIdxs.length > 0) {
-            takeIdxs.forEach(idx => {
-                const el = document.getElementById('stone'+idx);
-                if (el) {
-                    el.classList.add('fly');
-                    // 飞向小人
-                    const avatar = document.getElementById('avatar'+turn);
-                    const rectStone = el.getBoundingClientRect();
-                    const rectAvatar = avatar.getBoundingClientRect();
-                    const dx = rectAvatar.left + rectAvatar.width/2 - (rectStone.left + rectStone.width/2);
-                    const dy = rectAvatar.top + rectAvatar.height/2 - (rectStone.top + rectStone.height/2);
-                    el.style.transform = `translate(${dx}px,${dy}px) scale(0.2)`;
-                    el.style.opacity = 0.1;
-                }
-            });
-        }
-        document.getElementById('stones').textContent = stonesArr.filter(x=>x===0).length;
-    }
+                            <label class="field">
+                                <span data-i18n="player1Label"></span>
+                                <input type="text" id="player1">
+                            </label>
 
-    function updateStatus() {
-        for (let i = 1; i <= maxPick; i++) {
-            const btn = document.getElementById(`pick${i}`);
-            if (btn) {
-                btn.disabled = gameOver
-                    || stonesArr.filter(x=>x===0).length < i
-                    || (mode === 'ai' && turn === 1)
-                    || (i === lastPick && lastPick !== 0);
-            }
-        }
-        document.getElementById('status').textContent = `轮到 ${players[turn]} 捡石子`;
-        updateAvatars();
-    }
+                            <label class="field">
+                                <span id="player2LabelText"></span>
+                                <input type="text" id="player2">
+                            </label>
+                        </div>
 
-    function updateLog() {
-        const logArea = document.getElementById('logArea');
-        logArea.innerHTML = log.map(item => {
-            let cls = (mode === 'ai' && item.player === 1) ? 'ai' : 'player';
-            return `<div class="${cls}"><strong>${item.name}</strong> 捡了 <b>${item.count}</b> 颗石子，剩余 <b>${item.left}</b> 颗</div>`;
-        }).join('');
-        logArea.scrollTop = logArea.scrollHeight;
-    }
+                        <div class="panel-actions">
+                            <button type="button" class="primary-btn" id="startButton"></button>
+                        </div>
+                    </section>
 
-    function pickStones(n) {
-        if (gameOver || n < 1 || n > maxPick || n > stonesArr.filter(x=>x===0).length) return;
-        if (mode === 'ai' && turn !== 0) return;
-        if (n === lastPick) return; // 不允许和上次一样
-        let taken = [];
-        for (let i = 0, cnt = 0; i < stonesArr.length && cnt < n; i++) {
-            if (stonesArr[i] === 0) {
-                stonesArr[i] = 1;
-                taken.push(i);
-                cnt++;
-            }
-        }
-        updateStonesArea(taken);
-        setTimeout(() => {
-            afterPick(n, taken);
-        }, 600);
-    }
+                    <section class="panel rules-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2 data-i18n="rulesTitle"></h2>
+                                <p data-i18n="rulesHint"></p>
+                            </div>
+                        </div>
 
-    function afterPick(n, taken) {
-        lastPick = n;
-        const left = stonesArr.filter(x=>x===0).length;
-        log.push({player: turn, name: players[turn], count: n, left: left});
-        updateLog();
-        if (left === 0) {
-            document.getElementById('winner').textContent = `🎉 恭喜，${players[turn]} 获胜！`;
-            gameOver = true;
-            updateStatus();
-        } else {
-            turn = 1 - turn;
-            updateStatus();
-            if (mode === 'ai' && turn === 1) setTimeout(aiMove, 900);
-        }
-    }
+                        <ul class="rules-list" id="rulesList"></ul>
+                    </section>
+                </section>
+            </section>
 
-    function aiMove() {
-        if (gameOver || turn !== 1) return;
-        let left = stonesArr.filter(x=>x===0).length;
-        let possibleTakes = Array.from({length: maxPick}, (_, i) => i + 1).filter(n => n !== lastPick && n <= left);
-        if (possibleTakes.length === 0) {
-            document.getElementById('winner').textContent = '平局！双方都无合法操作。';
-            gameOver = true;
-            updateStatus();
-            return;
-        }
-        let aiPickNum = aiPick(left, lastPick);
-        console.log('AI行动', {left, lastPick, aiPickNum});
-        let taken = [];
-        for (let i = 0, cnt = 0; i < stonesArr.length && cnt < aiPickNum; i++) {
-            if (stonesArr[i] === 0) {
-                stonesArr[i] = 1;
-                taken.push(i);
-                cnt++;
-            }
-        }
-        updateStonesArea(taken);
-        setTimeout(() => {
-            const leftNow = stonesArr.filter(x=>x===0).length;
-            lastPick = aiPickNum;
-            log.push({player: 1, name: players[1], count: aiPickNum, left: leftNow});
-            updateLog();
-            if (leftNow === 0) {
-                document.getElementById('winner').textContent = `😎 ${AI_NAME} 获胜！`;
-                gameOver = true;
-                updateStatus();
-            } else {
-                turn = 0;
-                updateStatus();
-            }
-        }, 600);
-    }
+            <section class="screen game-screen is-hidden" id="gameScreen">
+                <section class="panel game-panel" id="gamePanel">
+                    <div class="game-topbar">
+                        <div class="status-cluster">
+                            <div class="status-pill" id="status"></div>
+                            <div class="turn-copy" id="turnHint"></div>
+                        </div>
+                    </div>
 
-    function aiPick(stones, lastTake) {
-        let possibleTakes = Array.from({length: maxPick}, (_, i) => i + 1).filter(n => n !== lastTake && n <= stones);
-        // 1. 必杀：让对手直接输
-        for (let n of possibleTakes) {
-            if (stones - n === n) {
-                return n;
-            }
-        }
-        // 2. 让对手剩4的倍数
-        for (let n of possibleTakes) {
-            let remain = stones - n;
-            if (remain % 4 === 0 && remain !== lastTake) {
-                return n;
-            }
-        }
-        // 3. 能取完就取完
-        if (possibleTakes.includes(stones)) {
-            return stones;
-        }
-        // 4. 随机/最小
-        return possibleTakes[0];
-    }
+                    <div class="game-summary">
+                        <div class="summary-chip">
+                            <span class="summary-label" data-i18n="remainingLabel"></span>
+                            <strong id="remainingCount">0</strong>
+                        </div>
+                        <div class="summary-chip">
+                            <span class="summary-label" data-i18n="lastPickLabel"></span>
+                            <strong id="lastPickValue"></strong>
+                        </div>
+                    </div>
 
-    function updateRuleTip() {
-        // 只保留1-3颗的规则说明
-        document.getElementById('ruleTip').textContent = '规则：每次可捡1、2或3颗石子，且不能和对手上一次捡取的数量相同，谁捡到最后一颗石子谁获胜。';
-    }
+                    <div class="duel-strip">
+                        <article class="player-card" id="playerCard0">
+                            <div class="player-avatar" id="avatar0" aria-hidden="true">🧑</div>
+                            <div class="player-meta">
+                                <div class="player-name" id="playerName0"></div>
+                                <div class="player-role" id="playerRole0"></div>
+                            </div>
+                        </article>
 
-    function resetGame() {
-        lastPick = 0;
-        document.getElementById('setup').style.display = '';
-        document.getElementById('game').style.display = 'none';
-    }
-    // 初始化时根据模式和规则显示输入框
-    onModeChange();
-    onRuleChange();
-</script>
+                        <div class="duel-mark" aria-hidden="true">VS</div>
+
+                        <article class="player-card" id="playerCard1">
+                            <div class="player-avatar" id="avatar1" aria-hidden="true">🤖</div>
+                            <div class="player-meta">
+                                <div class="player-name" id="playerName1"></div>
+                                <div class="player-role" id="playerRole1"></div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <section class="board">
+                        <div class="board-head">
+                            <div class="board-title" data-i18n="boardTitle"></div>
+                        </div>
+
+                        <div class="stones-stage" id="stonesStage">
+                            <div class="stones-grid" id="stonesGrid"></div>
+                            <div class="stone-overlay" id="stoneOverlay"></div>
+                        </div>
+
+                        <div class="action-strip">
+                            <div class="action-label" data-i18n="actionsLabel"></div>
+                            <div class="actions" id="actions"></div>
+                        </div>
+                    </section>
+
+                    <details class="log-section">
+                        <summary class="log-head">
+                            <span class="log-title" data-i18n="logTitle"></span>
+                            <span class="log-meta">
+                                <span class="log-counter" id="logCounter"></span>
+                                <span class="log-hint" id="logHint"></span>
+                            </span>
+                        </summary>
+                        <div class="log-list" id="logList" aria-live="polite"></div>
+                    </details>
+
+                    <div class="panel-actions">
+                        <button type="button" class="primary-btn" id="newRoundButton"></button>
+                        <button type="button" class="secondary-btn" id="backButton"></button>
+                    </div>
+                </section>
+
+                <div class="result-modal is-hidden" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultModalTitle">
+                    <div class="result-modal-card">
+                        <div class="result-modal-kicker" data-i18n="resultLabel"></div>
+                        <h2 class="result-modal-title" id="resultModalTitle"></h2>
+                        <p class="result-modal-copy" id="resultModalCopy"></p>
+                        <div class="panel-actions result-modal-actions">
+                            <button type="button" class="primary-btn" id="modalNewRoundButton"></button>
+                            <button type="button" class="secondary-btn" id="modalCloseButton"></button>
+                            <button type="button" class="secondary-btn" id="modalBackButton"></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
 </body>
 </html>
